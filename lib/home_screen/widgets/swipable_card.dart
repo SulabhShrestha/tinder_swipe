@@ -54,9 +54,7 @@ class _SwipableCardState extends State<SwipableCard> {
           onHorizontalDragUpdate: (details) {
             double distance = details.globalPosition.dx - _startX;
 
-            log("Distance : $distance, $rotationFactor, swipe direction: $swipeDirection");
-
-            // like and dislike
+            // swipeDirection is automatically marked as rebuilt by setState()
             if (distance.abs() > minSwipeDistance) {
               // right
               if (distance > 0) {
@@ -72,16 +70,13 @@ class _SwipableCardState extends State<SwipableCard> {
               swipeDirection = SwipeDirection.none;
             }
 
-            distance = distance > 0
-                ? -distance
-                : distance; // for same rotation on both sides
-
             setState(() {
               _positionX +=
                   details.delta.dx; // Update the card position during drag
 
-              rotationFactor = distance /
-                  500; // Rotate the card no matter the swipe distance
+              rotationFactor = -(distance / 500);
+
+              log("Distance : $distance, $rotationFactor, swipe direction: $swipeDirection");
             });
           },
           onHorizontalDragEnd: (details) {
