@@ -2,11 +2,14 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:swipe_card/models/card_model.dart';
+import 'dart:ui' as ui;
 
 class SwipableCard extends StatefulWidget {
   final CardModel cardModel;
   final ValueChanged<int> onSwipe;
   final int index;
+  final double width;
+  final double height;
 
   /// Index of the card at the top of the stack
   /// For blurring the rest of the cards
@@ -19,6 +22,8 @@ class SwipableCard extends StatefulWidget {
     required this.onSwipe,
     required this.index,
     required this.topIndex,
+    required this.height,
+    required this.width,
   });
 
   @override
@@ -33,68 +38,91 @@ class _SwipableCardState extends State<SwipableCard> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onHorizontalDragStart: (details) {
-        _startX = MediaQuery.of(context).size.width / 2;
+    return Stack(
+      children: [
+        // actual content
+        GestureDetector(
+          onHorizontalDragStart: (details) {
+            _startX = MediaQuery.of(context).size.width / 2;
 
-        log("Startx : $_startX");
-      },
-      onHorizontalDragUpdate: (details) {
-        double distance = details.globalPosition.dx - _startX;
+            log("Startx : $_startX");
+          },
+          onHorizontalDragUpdate: (details) {
+            double distance = details.globalPosition.dx - _startX;
 
-        distance = distance > 0
-            ? -distance
-            : distance; // for same rotation on both sides
+            distance = distance > 0
+                ? -distance
+                : distance; // for same rotation on both sides
 
-        setState(() {
-          _positionX +=
-              details.delta.dx; // Update the card position during drag
+            setState(() {
+              _positionX +=
+                  details.delta.dx; // Update the card position during drag
 
-          rotationFactor =
-              distance / 500; // Rotate the card no matter the swipe distance
+              rotationFactor = distance /
+                  500; // Rotate the card no matter the swipe distance
 
-          log("Distance : $distance, $rotationFactor");
-        });
-      },
-      onHorizontalDragEnd: (details) {
-        double endX =
-            details.globalPosition.dx; // Capture the end touch position
+              log("Distance : $distance, $rotationFactor");
+            });
+          },
+          onHorizontalDragEnd: (details) {
+            double endX =
+                details.globalPosition.dx; // Capture the end touch position
 
-        log("EndX : $endX");
-        double distance = endX - _startX; // Calculate the swipe distance
+            log("EndX : $endX");
+            double distance = endX - _startX; // Calculate the swipe distance
 
-        // Check if the swipe distance and velocity are sufficient to be classified as a swipe
-        if (distance.abs() > minSwipeDistance) {
-          if (distance > 0) {
-            print("Swiped right! Distance: $distance");
-            widget.onSwipe(widget.index);
-          } else {
-            print("Swiped left! Distance: $distance");
+            // Check if the swipe distance and velocity are sufficient to be classified as a swipe
+            if (distance.abs() > minSwipeDistance) {
+              if (distance > 0) {
+                print("Swiped right! Distance: $distance");
+                widget.onSwipe(widget.index);
+              } else {
+                print("Swiped left! Distance: $distance");
 
-            widget.onSwipe(widget.index);
-          }
-        } else {
-          print("Swipe not detected or insufficient.");
-          setState(() {
-            _positionX = 0; // Reset the card position
-            rotationFactor = 0; // Reset the card rotation
-          });
-        }
-      },
-      child: Transform(
-        transform: Matrix4.translationValues(_positionX, 0, 0)
-          ..setRotationZ(rotationFactor),
-        child: Card(
-          color: widget.topIndex == widget.index ? Colors.white : Colors.blue,
-          child: SizedBox(
-            width: 200,
-            height: 300,
-            child: Center(
-              child: Text(widget.cardModel.title),
+                widget.onSwipe(widget.index);
+              }
+            } else {
+              print("Swipe not detected or insufficient.");
+              setState(() {
+                _positionX = 0; // Reset the card position
+                rotationFactor = 0; // Reset the card rotation
+              });
+            }
+          },
+          child: Transform(
+            transform: Matrix4.translationValues(_positionX, 0, 0)
+              ..setRotationZ(rotationFactor),
+            child: Container(
+              width: widget.topIndex != widget.index
+                  ? widget.width - 20
+                  : widget.width,
+              height: widget.topIndex != widget.index
+                  ? widget.height - 50
+                  : widget.height,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                image: DecorationImage(
+                  image: NetworkImage(widget.cardModel.imageUrl),
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
           ),
         ),
-      ),
+
+        // blurring the other card if it is not at the top
+        if (widget.topIndex != widget.index)
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ui.ImageFilter.blur(sigmaX: 4.0, sigmaY: 5.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

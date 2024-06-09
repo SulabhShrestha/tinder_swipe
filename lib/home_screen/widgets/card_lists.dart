@@ -15,6 +15,9 @@ class CardList extends ConsumerStatefulWidget {
 class _CardListState extends ConsumerState<CardList> {
   int _topIndex = 0;
 
+  final cardWidth = 300.0;
+  final cardHeight = 400.0;
+
   @override
   void initState() {
     super.initState();
@@ -35,17 +38,32 @@ class _CardListState extends ConsumerState<CardList> {
   Widget build(BuildContext context) {
     final cards = ref.watch(swipeCardProvider);
 
-    return Stack(children: [
-      for (int i = 0; i < cards.length; i++)
-        SwipableCard(
-          cardModel: cards[i],
-          onSwipe: (index) {
-            log("Swiped card at index $index");
-            _removeCard(index);
-          },
-          index: i,
-          topIndex: _topIndex,
-        ),
-    ]);
+    return SizedBox(
+      height: cardHeight,
+      width: cardWidth,
+      child: cards.isEmpty
+          ? const Center(
+              child: Text("No more cards to show."),
+            )
+          : Stack(
+              children: List.generate(cards.length, (index) {
+                return Positioned(
+                  top: index != _topIndex ? 12 : 0,
+                  left: index != _topIndex ? 12 : 0,
+                  child: SwipableCard(
+                    width: cardWidth,
+                    height: cardHeight,
+                    cardModel: cards[index],
+                    onSwipe: (index) {
+                      log("Swiped card at index $index");
+                      _removeCard(index);
+                    },
+                    index: index,
+                    topIndex: _topIndex,
+                  ),
+                );
+              }),
+            ),
+    );
   }
 }

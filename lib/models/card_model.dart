@@ -1,5 +1,5 @@
 class CardModel {
-  final String title;
+  final String imageUrl;
 
-  CardModel({required this.title});
+  CardModel({required this.imageUrl});
 }

@@ -1,15 +1,16 @@
 // simple riverpod code.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swipe_card/models/card_model.dart';
+import 'package:swipe_card/utils/urls_contant.dart';
 
 class SwipeCardProvider extends StateNotifier<List<CardModel>> {
   SwipeCardProvider()
       : super([
-          CardModel(title: "Hello 1"),
-          CardModel(title: "Hello 2"),
-          CardModel(title: "Hello 3"),
-          CardModel(title: "Hello 4"),
-          CardModel(title: "Hello 5"),
+          CardModel(imageUrl: UrlsContant.pic1),
+          CardModel(imageUrl: UrlsContant.pic2),
+          CardModel(imageUrl: UrlsContant.pic3),
+          CardModel(imageUrl: UrlsContant.pic4),
+          CardModel(imageUrl: UrlsContant.pic5),
         ]);
 
   void removeCard(int index) {
