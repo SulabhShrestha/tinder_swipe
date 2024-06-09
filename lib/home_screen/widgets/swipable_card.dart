@@ -1,8 +1,11 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:swipe_card/home_screen/widgets/like_dislike_icon.dart';
 import 'package:swipe_card/models/card_model.dart';
 import 'dart:ui' as ui;
+
+import 'package:swipe_card/utils/swipe_direction_enum.dart';
 
 class SwipableCard extends StatefulWidget {
   final CardModel cardModel;
@@ -35,6 +38,7 @@ class _SwipableCardState extends State<SwipableCard> {
   double _startX = 0.0; // Initial position when swipe starts
   double minSwipeDistance = 100.0; // Minimum swipe distance to consider a swipe
   double rotationFactor = 0.0; // Rotation factor of the card
+  SwipeDirection swipeDirection = SwipeDirection.none;
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +54,24 @@ class _SwipableCardState extends State<SwipableCard> {
           onHorizontalDragUpdate: (details) {
             double distance = details.globalPosition.dx - _startX;
 
+            log("Distance : $distance, $rotationFactor, swipe direction: $swipeDirection");
+
+            // like and dislike
+            if (distance.abs() > minSwipeDistance) {
+              // right
+              if (distance > 0) {
+                swipeDirection = SwipeDirection.right;
+              }
+              // left
+              else {
+                swipeDirection = SwipeDirection.left;
+              }
+            }
+            // resetting
+            else {
+              swipeDirection = SwipeDirection.none;
+            }
+
             distance = distance > 0
                 ? -distance
                 : distance; // for same rotation on both sides
@@ -60,8 +82,6 @@ class _SwipableCardState extends State<SwipableCard> {
 
               rotationFactor = distance /
                   500; // Rotate the card no matter the swipe distance
-
-              log("Distance : $distance, $rotationFactor");
             });
           },
           onHorizontalDragEnd: (details) {
@@ -105,6 +125,15 @@ class _SwipableCardState extends State<SwipableCard> {
                   image: NetworkImage(widget.cardModel.imageUrl),
                   fit: BoxFit.cover,
                 ),
+              ),
+              child: Stack(
+                children: [
+                  swipeDirection == SwipeDirection.right
+                      ? LikeDislikeIcon.like()
+                      : swipeDirection == SwipeDirection.left
+                          ? LikeDislikeIcon.dislike()
+                          : const SizedBox(),
+                ],
               ),
             ),
           ),
